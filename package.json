@@ -3,7 +3,7 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
-    "build": "bun build ./src/index.ts --compile --minify --sourcemap  --bytecode  --outfile html2pdf"
+    "build": "bun build ./src/index.ts --compile --minify --sourcemap  --outfile ./out/html2pdf"
   },
   "private": true,
   "devDependencies": {
