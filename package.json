@@ -1,0 +1,19 @@
+{
+  "name": "html2pdf",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "bun build ./src/index.ts --compile --minify --sourcemap  --bytecode  --outfile html2pdf"
+  },
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "commander": "^13.1.0",
+    "puppeteer-core": "^24.6.0"
+  }
+}
