@@ -58,7 +58,11 @@ program
       console.info('PDF generated successfully');
       process.exit(0);
     } catch (error) {
-      console.error('Error generating PDF', error);
+      if (error instanceof Error) {
+        console.error('Error generating PDF: ' + error.message);
+      } else {
+        console.error('Error generating PDF');
+      }
       process.exit(1);
     }
   });
