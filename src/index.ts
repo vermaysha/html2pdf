@@ -50,13 +50,16 @@ program
         }
       });
 
+      await inputFile.delete();
       await outputFile.write(buffer);
       await page.close();
       await browser.close();
 
       console.info('PDF generated successfully');
+      process.exit(0);
     } catch (error) {
       console.error('Error generating PDF', error);
+      process.exit(1);
     }
   });
 
