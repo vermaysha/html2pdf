@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer-core';
 import { exists } from 'node:fs/promises';
 import { program } from 'commander';
 import { exec } from 'node:child_process';
+import { extname, resolve } from 'node:path';
 
 /**
  * Converts the difference between two timestamps from milliseconds to seconds.
@@ -47,11 +48,13 @@ program
     'Letter size, eg: A4, A3, A2, Letter, Legal',
     'legal'
   )
+  .option('-t, --timeout <number>', 'Timeout in minutes', '5')
   .argument('input', 'Path to HTML file')
   .argument('output', 'Path to output PDF file')
   .action(async (input, output) => {
     const options = program.opts();
     let chromePath = options.chromePath;
+    const timeout = (options.timeout || 5) * 60_000;
 
     if (!chromePath) {
       chromePath = await checkBinaryExists('google-chrome');
@@ -72,7 +75,7 @@ program
     const inputFile = Bun.file(input);
     const outputFile = Bun.file(output);
 
-    if (!(await inputFile.exists())) {
+    if (!(await inputFile.exists()) || !inputFile.name) {
       console.error(`Input file ${input} does not exist`);
       process.exit(1);
     }
@@ -81,15 +84,33 @@ program
       const startTime = performance.now();
       const browser = await puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--allow-file-access-from-files',
+          '--enable-local-file-accesses',
+        ],
         executablePath: chromePath,
       });
       const page = await browser.newPage();
       const browserStartupTime = performance.now();
+      const filePath = resolve(inputFile.name);
 
-      await page.setContent(await inputFile.text(), {
-        waitUntil: 'networkidle0',
-      });
+      if (extname(filePath) === '.html') {
+        await page.goto('file://' + filePath, {
+          waitUntil: 'networkidle0',
+          timeout: timeout,
+        });
+      } else {
+        await page.setContent(await inputFile.text(), {
+          waitUntil: 'networkidle0',
+          timeout: timeout,
+        });
+      }
+
+
+
       const pageSetContentTime = performance.now();
       const buffer = await page.pdf({
         format: options.pageFormat,
@@ -99,6 +120,7 @@ program
           left: 0,
           right: 0,
         },
+        timeout: timeout,
       });
       const generatePdfTime = performance.now();
 
@@ -133,7 +155,7 @@ program
       process.exit(0);
     } catch (error) {
       if (error instanceof Error) {
-        console.error('Error generating PDF: ' + error.message);
+        console.error(error.message);
       } else {
         console.error('Error generating PDF');
       }
