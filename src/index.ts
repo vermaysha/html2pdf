@@ -109,16 +109,14 @@ program
         });
       }
 
-
-
       const pageSetContentTime = performance.now();
       const buffer = await page.pdf({
         format: options.pageFormat,
         margin: {
-          top: 0,
-          bottom: 0,
-          left: 0,
-          right: 0,
+          top: '0mm',
+          bottom: '0mm',
+          left: '0mm',
+          right: '0mm',
         },
         timeout: timeout,
       });
