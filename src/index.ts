@@ -6,19 +6,12 @@ import { extname, resolve } from 'node:path';
 
 /**
  * Converts the difference between two timestamps from milliseconds to seconds.
- *
- * @param end - The end timestamp in milliseconds.
- * @param start - The start timestamp in milliseconds.
- * @returns The difference in seconds as a string formatted to three decimal places, followed by ' s'.
  */
 const toSeconds = (end: number, start: number) =>
   ((end - start) / 1000).toFixed(3) + ' s';
 
 /**
  * Checks if a binary exists in the system's PATH and returns its path if found.
- *
- * @param binaryName - The name of the binary to check.
- * @returns A promise that resolves to the path of the binary if found, or null if not found within 3 seconds.
  */
 const checkBinaryExists = (binaryName: string): Promise<string | null> => {
   return new Promise((resolve) => {
@@ -28,15 +21,25 @@ const checkBinaryExists = (binaryName: string): Promise<string | null> => {
         return;
       }
       resolve(stdout.trim());
-      return;
     });
 
     setTimeout(() => {
       ex.kill();
-
       resolve(null);
     }, 3000);
   });
+};
+
+/**
+ * Check if a string is a valid URL
+ */
+const isValidUrl = (string: string): boolean => {
+  try {
+    new URL(string);
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 program
@@ -49,12 +52,12 @@ program
     'legal'
   )
   .option('-t, --timeout <number>', 'Timeout in minutes', '5')
-  .argument('input', 'Path to HTML file')
+  .argument('input', 'Path to HTML file or URL')
   .argument('output', 'Path to output PDF file')
   .action(async (input, output) => {
     const options = program.opts();
     let chromePath = options.chromePath;
-    const timeout = (options.timeout || 5) * 60_000;
+    const timeout = (Number(options.timeout) || 5) * 60_000;
 
     if (!chromePath) {
       chromePath = await checkBinaryExists('google-chrome');
@@ -66,19 +69,12 @@ program
     }
 
     const chromeIsExists = await exists(chromePath);
-
     if (!chromeIsExists) {
       console.error(`Chrome executable not found at ${chromePath}`);
       process.exit(1);
     }
 
-    const inputFile = Bun.file(input);
     const outputFile = Bun.file(output);
-
-    if (!(await inputFile.exists()) || !inputFile.name) {
-      console.error(`Input file ${input} does not exist`);
-      process.exit(1);
-    }
 
     try {
       const startTime = performance.now();
@@ -93,62 +89,61 @@ program
         ],
         executablePath: chromePath,
       });
+
       const page = await browser.newPage();
       const browserStartupTime = performance.now();
-      const filePath = resolve(inputFile.name);
 
-      if (extname(filePath) === '.html') {
-        await page.goto('file://' + filePath, {
+      if (isValidUrl(input)) {
+        // Input is a URL
+        await page.goto(input, {
           waitUntil: 'networkidle0',
           timeout: timeout,
         });
       } else {
-        await page.setContent(await inputFile.text(), {
-          waitUntil: 'networkidle0',
-          timeout: timeout,
-        });
+        // Input is a local file path
+        const inputFile = Bun.file(input);
+
+        if (!(await inputFile.exists()) || !inputFile.name) {
+          console.error(`Input file ${input} does not exist`);
+          process.exit(1);
+        }
+
+        const filePath = resolve(inputFile.name);
+
+        if (extname(filePath) === '.html') {
+          await page.goto('file://' + filePath, {
+            waitUntil: 'networkidle0',
+            timeout: timeout,
+          });
+        } else {
+          await page.setContent(await inputFile.text(), {
+            waitUntil: 'networkidle0',
+            timeout: timeout,
+          });
+        }
       }
 
       const pageSetContentTime = performance.now();
       const buffer = await page.pdf({
         format: options.pageFormat,
-        margin: {
-          top: '0mm',
-          bottom: '0mm',
-          left: '0mm',
-          right: '0mm',
-        },
+        margin: { top: '0mm', bottom: '0mm', left: '0mm', right: '0mm' },
         timeout: timeout,
       });
       const generatePdfTime = performance.now();
 
-      await inputFile.delete();
       await outputFile.write(buffer);
 
       const writePdfTime = performance.now();
       await page.close();
       await browser.close();
-
       const endTime = performance.now();
 
       console.info('PDF generated successfully');
       console.info('Total Time:', toSeconds(endTime, startTime));
-      console.info(
-        'Browser Start Time:',
-        toSeconds(browserStartupTime, startTime)
-      );
-      console.info(
-        'Page Set Content Time:',
-        toSeconds(pageSetContentTime, browserStartupTime)
-      );
-      console.info(
-        'PDF Generation Time:',
-        toSeconds(generatePdfTime, pageSetContentTime)
-      );
-      console.info(
-        'Writing PDF to Disk Time:',
-        toSeconds(writePdfTime, generatePdfTime)
-      );
+      console.info('Browser Start Time:', toSeconds(browserStartupTime, startTime));
+      console.info('Page Set Content Time:', toSeconds(pageSetContentTime, browserStartupTime));
+      console.info('PDF Generation Time:', toSeconds(generatePdfTime, pageSetContentTime));
+      console.info('Writing PDF to Disk Time:', toSeconds(writePdfTime, generatePdfTime));
       console.info('Cleanup Time:', toSeconds(endTime, writePdfTime));
       process.exit(0);
     } catch (error) {
