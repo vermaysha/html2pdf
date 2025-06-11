@@ -6,6 +6,7 @@ import { convertToPdf } from '../core/pdf-converter';
 import { defineOptions } from './options';
 import { handleInputOutput } from '../core/file-handler';
 import type { CliOptions } from '../types'; // Import the new type
+import { createBrowserCommand } from './browser-commands';
 
 /**
  * @file src/cli/commands.ts
@@ -18,6 +19,7 @@ export function configureCommands(program: Command) {
 
   // Define arguments and the main action
   configuredProgram
+    .addCommand(createBrowserCommand())
     .argument(
       'input',
       'Path to HTML file or URL. Supports local files (relative/absolute), URLs (http, https, file), and S3 (s3://).'
@@ -26,7 +28,6 @@ export function configureCommands(program: Command) {
       'output',
       'Path to the output PDF file. Supports local files (relative/absolute) and S3 (s3://).'
     )
-    // By applying the CliOptions type, the 'options' object is now fully type-safe.
     .action(async (input: string, output: string, options) => {
       try {
         console.log('🚀 Starting HTML to PDF conversion...');
