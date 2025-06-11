@@ -6,11 +6,11 @@
   "type": "module",
   "scripts": {
     "bundle": "rm -rf dist && bun run bundle:linux-modern && bun run bundle:linux-legacy && bun run bundle:linux-arm64 && bun run bundle:windows-modern && bun run bundle:windows-legacy",
-    "bundle:linux-modern": "NODE_ENV=production bun build --compile --target=bun-linux-x64-modern ./src/index.ts --outfile dist/whatsapp-linux-x86-modern",
-    "bundle:linux-legacy": "NODE_ENV=production bun build --compile --target=bun-linux-x64-baseline ./src/index.ts --outfile dist/whatsapp-linux-x86-baseline",
-    "bundle:linux-arm64": "NODE_ENV=production bun build --compile --target=bun-linux-arm64 ./src/index.ts --outfile dist/whatsapp-linux-arm64",
-    "bundle:windows-modern": "NODE_ENV=production bun build --compile --target=bun-windows-x64-modern ./src/index.ts --outfile dist/whatsapp-windows-x86-modern",
-    "bundle:windows-legacy": "NODE_ENV=production bun build --compile --target=bun-windows-x64-baseline ./src/index.ts --outfile dist/whatsapp-windows-x86-baseline"
+    "bundle:linux-modern": "NODE_ENV=production bun build --compile --target=bun-linux-x64-modern ./src/index.ts --outfile dist/html2pdf-linux-x86-modern",
+    "bundle:linux-legacy": "NODE_ENV=production bun build --compile --target=bun-linux-x64-baseline ./src/index.ts --outfile dist/html2pdf-linux-x86-baseline",
+    "bundle:linux-arm64": "NODE_ENV=production bun build --compile --target=bun-linux-arm64 ./src/index.ts --outfile dist/html2pdf-linux-arm64",
+    "bundle:windows-modern": "NODE_ENV=production bun build --compile --target=bun-windows-x64-modern ./src/index.ts --outfile dist/html2pdf-windows-x86-modern",
+    "bundle:windows-legacy": "NODE_ENV=production bun build --compile --target=bun-windows-x64-baseline ./src/index.ts --outfile dist/html2pdf-windows-x86-baseline"
   },
   "private": true,
   "devDependencies": {
