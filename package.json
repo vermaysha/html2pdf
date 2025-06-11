@@ -1,5 +1,7 @@
 {
   "name": "html2pdf",
+  "description": "Converts HTML to PDF",
+  "version": "1.0.0",
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
@@ -7,13 +9,15 @@
   },
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.2.15",
+    "@types/node": "^24.0.0"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "commander": "^14.0.0",
+    "@commander-js/extra-typings": "^14.0.0",
+    "@puppeteer/browsers": "^2.10.5",
     "puppeteer-core": "^24.10.0"
   }
 }
