@@ -172,4 +172,3 @@ If you prefer to build the project from source, you will need **Bun**.
     ```bash
     bun run src/index.ts --help
     ```
-```
