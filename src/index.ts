@@ -8,7 +8,7 @@ import { extname, resolve } from 'node:path';
  * Converts the difference between two timestamps from milliseconds to seconds.
  */
 const toSeconds = (end: number, start: number) =>
-  ((end - start) / 1000).toFixed(3) + ' s';
+  `${((end - start) / 1000).toFixed(3)} s`;
 
 /**
  * Checks if a binary exists in the system's PATH and returns its path if found.
