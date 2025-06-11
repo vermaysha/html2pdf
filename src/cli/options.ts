@@ -5,7 +5,7 @@ import { Option, type Command } from '@commander-js/extra-typings';
  * @description Defines all command-line options for the application.
  */
 
-export function defineOptions(program: Command): Command {
+export function defineOptions(program: Command) {
   return program
     .addOption(
       new Option('-c, --chrome-path <path>', 'Path to the Chrome/Chromium executable.')
@@ -27,13 +27,14 @@ export function defineOptions(program: Command): Command {
         .default(5)
         .argParser(parseInt)
     )
+    .addOption(
+      new Option('-d, --remove-source', 'Remove the source file after successful conversion.')
+        .default(false)
+    )
+    .optionsGroup('S3 Options: ')
     .option('--s3-access-key-id <value>', 'AWS S3 access key ID. Overrides environment variable S3_ACCESS_KEY_ID.')
     .option('--s3-secret-access-key <value>', 'AWS S3 secret access key. Overrides environment variable S3_SECRET_ACCESS_KEY.')
     .option('--s3-bucket <value>', 'AWS S3 bucket name. Overrides environment variable S3_BUCKET.')
     .option('--s3-region <value>', 'AWS S3 region. Overrides environment variable S3_REGION.')
     .option('--s3-endpoint <value>', 'AWS S3 endpoint URL. Overrides environment variable S3_ENDPOINT.')
-    .addOption(
-      new Option('-d, --remove-source', 'Remove the source file after successful conversion.')
-        .default(false)
-    );
 }
