@@ -101,9 +101,9 @@ export async function convertToPdf(options: ConversionOptions): Promise<void> {
     console.log('PDF written successfully.');
 
     // Optionally remove source file
-    if (removeSource && inputSource.type === 'file' && !inputSource.isUrl) {
+    if (removeSource) {
       console.log(`Removing source file: ${inputSource.path}`);
-      await unlink(inputSource.path);
+      await inputSource.cleanup();
       console.log('Source file removed.');
     }
   } catch (error) {

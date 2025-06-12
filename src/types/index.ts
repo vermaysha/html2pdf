@@ -10,9 +10,10 @@ export type BrowserPath = string | null;
 
 export type OutputFile = BunFile | S3File;
 
-export type InputSource =
-  | { type: 'url'; path: string; isUrl: true; }
-  | { type: 'file'; file: BunFile | S3File; path: string; isUrl: boolean; };
+export type InputSource = { cleanup: () => Promise<void> | void } & (
+  | { type: 'url'; path: string; isUrl: true }
+  | { type: 'file'; file: BunFile | S3File; path: string; isUrl: boolean }
+);
 
 /**
  * Defines the shape of the options object parsed from the command line.
