@@ -99,12 +99,12 @@ html2pdf [input] [output] [options]
 
 - **From a URL to a S3 Compatible:**
   ```bash
-  html2pdf https://google.com s3://bucket/output.pdf --s3-access-key-id YOUR_ACCESS_KEY_ID --s3-secret-access-key YOUR_ACCESS_KEY --s3-bucket YOUR_BUCKET --s3-endpoint YOUR_ENDPOINT
+  html2pdf https://google.com s3://YOUR_BUCKET/output.pdf --s3-access-key-id YOUR_ACCESS_KEY_ID --s3-secret-access-key YOUR_ACCESS_KEY --s3-endpoint YOUR_ENDPOINT
   ```
 
 - **From a S3 Compatible to a S3 Compatible:**
   ```bash
-  html2pdf s3://bucket/input.html s3://bucket/output.pdf --s3-access-key-id YOUR_ACCESS_KEY_ID --s3-secret-access-key YOUR_ACCESS_KEY --s3-bucket YOUR_BUCKET --s3-endpoint YOUR_ENDPOINT
+  html2pdf s3://YOUR_BUCKET/input.html s3://YOUR_BUCKET/output.pdf --s3-access-key-id YOUR_ACCESS_KEY_ID --s3-secret-access-key YOUR_ACCESS_KEY --s3-endpoint YOUR_ENDPOINT
   ```
 
 - **Using Options:**
@@ -122,7 +122,6 @@ html2pdf [input] [output] [options]
 | `-d, --remove-source`            | Delete the source file after a successful conversion.          | `false`                |
 | `--s3-access-key-id <value>`     | S3 access key.                                                 | `S3_ACCESS_KEY_ID`     |
 | `--s3-secret-access-key <value>` | S3 secret key.                                                 | `S3_SECRET_ACCESS_KEY` |
-| `--s3-bucket <value>`            | S3 bucket name.                                                | `S3_BUCKET`            |
 | `--s3-region <value>`            | S3 region.                                                     | `S3_REGION`            |
 | `--s3-endpoint <value>`          | S3 endpoint URL.                                               | `S3_ENDPOINT`          |
 

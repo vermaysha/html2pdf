@@ -34,7 +34,6 @@ export function defineOptions(program: Command) {
     .optionsGroup('S3 Options: ')
     .option('--s3-access-key-id <value>', 'AWS S3 access key ID. Overrides environment variable S3_ACCESS_KEY_ID.')
     .option('--s3-secret-access-key <value>', 'AWS S3 secret access key. Overrides environment variable S3_SECRET_ACCESS_KEY.')
-    .option('--s3-bucket <value>', 'AWS S3 bucket name. Overrides environment variable S3_BUCKET.')
     .option('--s3-region <value>', 'AWS S3 region. Overrides environment variable S3_REGION.')
     .option('--s3-endpoint <value>', 'AWS S3 endpoint URL. Overrides environment variable S3_ENDPOINT.')
 }

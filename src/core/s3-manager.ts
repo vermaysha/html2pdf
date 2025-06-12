@@ -25,9 +25,8 @@ export function setupS3Client(options: S3Options): S3Client {
   const secretAccessKey = getCredential(options.s3SecretAccessKey, 'S3_SECRET_ACCESS_KEY');
   const region = getCredential(options.s3Region, 'S3_REGION');
   const endpoint = getCredential(options.s3Endpoint, 'S3_ENDPOINT');
-  const bucket = getCredential(options.s3Bucket, 'S3_BUCKET'); // Although not used in client, it's good to validate
 
-  const required = { accessKeyId, secretAccessKey, endpoint, bucket };
+  const required = { accessKeyId, secretAccessKey, endpoint };
   for (const [key, value] of Object.entries(required)) {
     if (!value) {
       console.error(`❌ S3 configuration error: ${key} is required. Provide it via CLI option or environment variable.`);
