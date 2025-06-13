@@ -9,18 +9,47 @@ on:
   # Dijalankan saat ada pull request yang ditujukan ke branch 'main'
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 # Mendefinisikan pekerjaan (jobs) yang akan dijalankan
 jobs:
   build-and-test:
-    # Nama pekerjaan yang akan ditampilkan di UI GitHub
-    name: Build & Test on ${{ matrix.os }}
-    # Menentukan bahwa pekerjaan ini akan berjalan di beberapa sistem operasi
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+    # Nama pekerjaan yang akan ditampilkan di UI GitHub, dibuat dinamis berdasarkan matriks
+    name: ${{ matrix.name }}
 
-    # Menentukan sistem operasi untuk runner
+    # Strategi untuk menjalankan pekerjaan secara paralel di berbagai konfigurasi
+    strategy:
+      # Jangan batalkan pekerjaan lain jika salah satu gagal
+      fail-fast: false
+      matrix:
+        # Mendefinisikan setiap kombinasi OS, arsitektur, dan skrip build yang akan diuji
+        include:
+          - name: Test on Linux (x86)
+            os: ubuntu-latest
+            build_script: bundle:linux
+            executable_path: dist/html2pdf-linux-x86
+
+          - name: Test on Linux (ARM64)
+            os: ubuntu-24.04-arm
+            build_script: bundle:linux-arm64
+            executable_path: dist/html2pdf-linux-arm64
+
+          - name: Test on Windows (x86)
+            os: windows-latest
+            build_script: bundle:windows
+            executable_path: dist/html2pdf-windows-x86.exe
+
+          - name: Test on macOS (x86 Intel)
+            os: macos-13 # Runner berbasis Intel untuk pengujian x86
+            build_script: bundle:macos
+            executable_path: dist/html2pdf-macos-x86
+
+          - name: Test on macOS (ARM64 Apple Silicon)
+            os: macos-latest # Runner berbasis ARM untuk pengujian arm64
+            build_script: bundle:macos-arm64
+            executable_path: dist/html2pdf-macos-arm64
+
+    # Menentukan sistem operasi untuk runner berdasarkan matriks
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -32,11 +61,9 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          # Menggunakan versi Bun yang didefinisikan di package.json atau versi terbaru
           bun-version: "latest"
 
       # Langkah 3: Cache untuk dependensi Bun
-      # Mempercepat proses instalasi di masa depan
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
@@ -46,7 +73,6 @@ jobs:
             ${{ runner.os }}-bun-
 
       # Langkah 4: Cache untuk browser Puppeteer
-      # Mencegah pengunduhan browser berulang kali, menghemat waktu dan bandwidth
       - name: Cache Puppeteer browsers
         uses: actions/cache@v4
         with:
@@ -60,26 +86,20 @@ jobs:
         run: bun install --frozen-lockfile
 
       # Langkah 6: Menginstal browser yang dibutuhkan oleh Puppeteer
-      # Akan menggunakan cache jika tersedia
       - name: Install browser for Puppeteer
         run: bun run src/index.ts browser install
 
-      # Langkah 7: Membangun aplikasi menjadi file biner menggunakan skrip package.json
-      - name: Build the application
-        id: build
+      # Langkah 7: Membangun aplikasi menggunakan skrip dari matriks
+      - name: Build the application for ${{ matrix.os }}
+        run: bun run ${{ matrix.build_script }}
+        shell: bash
+
+      # Langkah tambahan khusus untuk runner Linux: bangun juga versi ARM64 untuk memastikan tidak ada eror kompilasi
+      - name: Cross-compile for Linux ARM64 (build only)
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          # Menjalankan skrip build yang sesuai dengan sistem operasi runner
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
-            bun run bundle:linux
-            echo "executable_path=dist/html2pdf-linux-x86" >> $GITHUB_OUTPUT
-          elif [[ "${{ runner.os }}" == "Windows" ]]; then
-            bun run bundle:windows
-            # `bun build` secara otomatis menambahkan .exe di Windows
-            echo "executable_path=dist/html2pdf-windows-x86.exe" >> $GITHUB_OUTPUT
-          elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            bun run bundle:macos
-            echo "executable_path=dist/html2pdf-macos-x86" >> $GITHUB_OUTPUT
-          fi
+          echo "Cross-compiling for Linux ARM64 to ensure it builds successfully..."
+          bun run bundle:linux-arm64
         shell: bash
 
       # Langkah 8: Menjalankan tes end-to-end
@@ -88,8 +108,8 @@ jobs:
           # Membuat file HTML sederhana untuk tes konversi
           echo "<h1>Hello, World!</h1><p>This is a test from GitHub Actions.</p>" > test.html
 
-          # Mendapatkan path biner yang dapat dieksekusi dari langkah sebelumnya
-          EXECUTABLE="./${{ steps.build.outputs.executable_path }}"
+          # Mendapatkan path biner yang dapat dieksekusi dari matriks
+          EXECUTABLE="./${{ matrix.executable_path }}"
 
           # Membuat biner dapat dieksekusi (khusus untuk Linux/macOS)
           if [[ "${{ runner.os }}" != "Windows" ]]; then
