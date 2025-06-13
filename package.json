@@ -14,8 +14,8 @@
   },
   "private": true,
   "devDependencies": {
-    "@types/bun": "^1.2.15",
-    "@types/node": "^24.0.0"
+    "@types/bun": "^1.2.16",
+    "@types/node": "^24.0.1"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"
@@ -23,6 +23,6 @@
   "dependencies": {
     "@commander-js/extra-typings": "^14.0.0",
     "@puppeteer/browsers": "^2.10.5",
-    "puppeteer-core": "^24.10.0"
+    "puppeteer-core": "^24.10.1"
   }
 }
