@@ -29,18 +29,18 @@ Download the pre-compiled binary for your operating system from the [**latest re
 
 1.  **Download the binary** for your architecture (e.g., x64, arm64).
     ```bash
-    # Replace 'html2pdf-linux-x86-modern' with the correct file for your OS/architecture
-    curl -LO https://github.com/vermaysha/html2pdf/releases/latest/download/html2pdf-linux-x86-modern
+    # Replace 'html2pdf-linux-x86' with the correct file for your OS/architecture
+    curl -LO https://github.com/vermaysha/html2pdf/releases/latest/download/html2pdf-linux-x86
     ```
 
 2.  **Make the binary executable.**
     ```bash
-    chmod +x ./html2pdf-linux-x86-modern
+    chmod +x ./html2pdf-linux-x86
     ```
 
 3.  **Move it to a directory in your PATH** for global access. We recommend renaming it to `html2pdf`.
     ```bash
-    sudo mv ./html2pdf-linux-x86-modern /usr/local/bin/html2pdf
+    sudo mv ./html2pdf-linux-x86 /usr/local/bin/html2pdf
     ```
 
 4.  **Verify the installation.**
@@ -52,8 +52,8 @@ Download the pre-compiled binary for your operating system from the [**latest re
 
 1.  **Download the executable** (`.exe`) for your architecture from the [**latest release**](https://github.com/vermaysha/html2pdf/releases/latest/). You can do this through your browser or with PowerShell.
     ```powershell
-    # Replace 'html2pdf-windows-x86-modern.exe' with the correct file for your architecture
-    $url = "https://github.com/vermaysha/html2pdf/releases/latest/download/html2pdf-windows-x86-modern.exe"
+    # Replace 'html2pdf-windows-x86.exe' with the correct file for your architecture
+    $url = "https://github.com/vermaysha/html2pdf/releases/latest/download/html2pdf-windows-x86.exe"
     $output = ".\html2pdf.exe"
     Invoke-WebRequest -Uri $url -OutFile $output
     ```
@@ -151,6 +151,15 @@ html2pdf browser <sub-command>
   ```
 
 ---
+
+### 3. Upgrade to the latest version
+
+To upgrade to the latest version, run the following command:
+```bash
+html2pdf self-upgrade
+```
+
+This will download the latest version of the application and overwrite the current version. It is recommended to run this command before using the application to ensure you have the latest version.
 
 ## 🧑‍💻 Building from Source
 

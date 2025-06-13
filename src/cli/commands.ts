@@ -6,6 +6,7 @@ import { convertToPdf } from '../core/pdf-converter';
 import { defineOptions } from './options';
 import { handleInputOutput } from '../core/file-handler';
 import { createBrowserCommand } from './browser-commands';
+import { runSelfUpdate } from '../core/self-updater';
 
 /**
  * @file src/cli/commands.ts
@@ -85,4 +86,10 @@ export function configureCommands(program: Command) {
 
     // 3. Add the separate 'browser' subcommand.
     program.addCommand(createBrowserCommand());
+
+    // 4. Add the 'self-upgrade' subcommand
+    program
+      .command('self-upgrade')
+      .description('Update the CLI to the latest version from GitHub.')
+      .action(runSelfUpdate);
 }
