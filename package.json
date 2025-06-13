@@ -37,5 +37,6 @@
   "homepage": "https://github.com/vermaysha/html2pdf",
   "bugs": {
     "url": "https://github.com/vermaysha/html2pdf/issues"
-  }
+  },
+  "license": "MIT"
 }
