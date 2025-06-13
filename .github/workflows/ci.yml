@@ -1,0 +1,111 @@
+# Nama alur kerja yang akan ditampilkan di tab Actions di GitHub
+name: Build and Test CI
+
+# Menentukan kapan alur kerja ini akan dijalankan
+on:
+  # Dijalankan saat ada push ke branch 'main'
+  push:
+    branches: [ "main" ]
+  # Dijalankan saat ada pull request yang ditujukan ke branch 'main'
+  pull_request:
+    branches: [ "main" ]
+
+# Mendefinisikan pekerjaan (jobs) yang akan dijalankan
+jobs:
+  build-and-test:
+    # Nama pekerjaan yang akan ditampilkan di UI GitHub
+    name: Build & Test on ${{ matrix.os }}
+    # Menentukan bahwa pekerjaan ini akan berjalan di beberapa sistem operasi
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    # Menentukan sistem operasi untuk runner
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Langkah 1: Mengunduh kode sumber dari repositori
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Langkah 2: Menyiapkan lingkungan Bun
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          # Menggunakan versi Bun yang didefinisikan di package.json atau versi terbaru
+          bun-version: "latest"
+
+      # Langkah 3: Cache untuk dependensi Bun
+      # Mempercepat proses instalasi di masa depan
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      # Langkah 4: Cache untuk browser Puppeteer
+      # Mencegah pengunduhan browser berulang kali, menghemat waktu dan bandwidth
+      - name: Cache Puppeteer browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/puppeteer
+          key: ${{ runner.os }}-puppeteer-${{ hashFiles('src/core/browser-manager.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-puppeteer-
+
+      # Langkah 5: Menginstal dependensi proyek
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Langkah 6: Menginstal browser yang dibutuhkan oleh Puppeteer
+      # Akan menggunakan cache jika tersedia
+      - name: Install browser for Puppeteer
+        run: bun run src/index.ts browser install
+
+      # Langkah 7: Membangun aplikasi menjadi file biner menggunakan skrip package.json
+      - name: Build the application
+        id: build
+        run: |
+          # Menjalankan skrip build yang sesuai dengan sistem operasi runner
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            bun run bundle:linux
+            echo "executable_path=dist/html2pdf-linux-x86" >> $GITHUB_OUTPUT
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            bun run bundle:windows
+            # `bun build` secara otomatis menambahkan .exe di Windows
+            echo "executable_path=dist/html2pdf-windows-x86.exe" >> $GITHUB_OUTPUT
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            bun run bundle:macos
+            echo "executable_path=dist/html2pdf-macos-x86" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      # Langkah 8: Menjalankan tes end-to-end
+      - name: Run end-to-end test
+        run: |
+          # Membuat file HTML sederhana untuk tes konversi
+          echo "<h1>Hello, World!</h1><p>This is a test from GitHub Actions.</p>" > test.html
+
+          # Mendapatkan path biner yang dapat dieksekusi dari langkah sebelumnya
+          EXECUTABLE="./${{ steps.build.outputs.executable_path }}"
+
+          # Membuat biner dapat dieksekusi (khusus untuk Linux/macOS)
+          if [[ "${{ runner.os }}" != "Windows" ]]; then
+            chmod +x $EXECUTABLE
+          fi
+
+          # Menjalankan perintah konversi
+          echo "Running conversion: $EXECUTABLE ./test.html ./output.pdf"
+          $EXECUTABLE ./test.html ./output.pdf
+
+          # Memverifikasi bahwa file PDF berhasil dibuat dan tidak kosong
+          if [ -s output.pdf ]; then
+            echo "✅ Test successful: output.pdf was created and is not empty."
+          else
+            echo "❌ Test failed: output.pdf was not created or is empty."
+            exit 1
+          fi
+        # Menggunakan shell 'bash' agar konsisten di semua platform
+        shell: bash
