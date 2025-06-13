@@ -3,12 +3,12 @@ name: Build and Test CI
 
 # Menentukan kapan alur kerja ini akan dijalankan
 on:
-  # Dijalankan saat ada push ke branch 'main'
+  # Dijalankan saat ada push ke branch 'master'
   push:
-    branches: [ "main" ]
-  # Dijalankan saat ada pull request yang ditujukan ke branch 'main'
+    branches: [ "master" ]
+  # Dijalankan saat ada pull request yang ditujukan ke branch 'master'
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
   workflow_dispatch:
 
 # Mendefinisikan pekerjaan (jobs) yang akan dijalankan
