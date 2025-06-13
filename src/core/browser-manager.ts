@@ -8,6 +8,7 @@ import {
 } from '@puppeteer/browsers';
 import { rm } from 'node:fs/promises';
 import config from '../config';
+import { PUPPETEER_REVISIONS } from 'puppeteer-core/src/revisions.ts';
 
 /**
  * @file src/core/browser-manager.ts
@@ -69,7 +70,7 @@ export async function clearBrowserCache(): Promise<void> {
 }
 
 /**
- * Downloads and installs the stable version of chrome-headless-shell.
+ * Downloads and installs the locked version of chrome-headless-shell.
  */
 export async function installHeadlessShell(): Promise<void> {
   console.log('⏳ Preparing to install chrome-headless-shell...');
@@ -78,15 +79,16 @@ export async function installHeadlessShell(): Promise<void> {
     if (!platform) {
       throw new Error('Could not detect the current platform.');
     }
+    const tag = PUPPETEER_REVISIONS['chrome-headless-shell'] ?? 'stable';
 
-    // Use 'stable' to automatically resolve the Stable stable build ID
+    // Use locked version of 'google-headless-shell' from puppeteer-core
     const buildId = await resolveBuildId(
       Browser.CHROMEHEADLESSSHELL,
       platform,
-      BrowserTag.STABLE
+      tag,
     );
     console.log(
-      `ℹ️ Stable build ID for your platform (${platform}): ${buildId}`
+      `ℹ️ Chrome headless shell build ID for your platform (${platform}): ${buildId}`
     );
 
     // Check if this build is already installed
