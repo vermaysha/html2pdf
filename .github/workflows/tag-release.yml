@@ -1,0 +1,62 @@
+# Nama alur kerja yang akan ditampilkan di tab Actions di GitHub
+name: Create Release Tag
+
+# Menentukan kapan alur kerja ini akan dijalankan
+on:
+  # Memungkinkan alur kerja ini dijalankan secara manual dari tab Actions
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to tag (e.g., v2.2.0)'
+        required: true
+        type: string
+
+# Mendefinisikan pekerjaan (jobs) yang akan dijalankan
+jobs:
+  tag:
+    # Nama pekerjaan yang akan ditampilkan di UI GitHub
+    name: Create and Push Tag
+    # Menggunakan runner Linux terbaru
+    runs-on: ubuntu-latest
+
+    # Memberikan izin kepada pekerjaan untuk menulis ke repositori (membuat tag & commit)
+    permissions:
+      contents: write
+
+    steps:
+      # Langkah 1: Mengunduh kode sumber dari repositori
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Langkah 2: Menyiapkan lingkungan Bun
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "latest"
+
+      # Langkah 3: Menyiapkan lingkungan Node.js (untuk menggunakan npm)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*' # Menggunakan versi LTS Node.js
+
+      # Langkah 4: Mengkonfigurasi identitas Git untuk bot actions
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Langkah 5: Menginstal dependensi proyek menggunakan Bun
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Langkah 6: Memperbarui versi, membuat commit, dan membuat tag menggunakan NPM
+      - name: Bump version, commit, and tag
+        run: |
+          # Menggunakan npm version untuk memperbarui package.json, membuat commit, dan membuat tag
+          # -m "..." adalah untuk format pesan commit, %s akan diganti dengan nomor versi
+          npm version ${{ github.event.inputs.version }} -m "chore(release): bump version to %s"
+
+      # Langkah 7: Mendorong perubahan (commit dan tag baru) ke branch 'main'
+      - name: Push changes and tags
+        run: git push origin main --follow-tags

@@ -1,0 +1,53 @@
+# Nama alur kerja yang akan ditampilkan di tab Actions di GitHub
+name: Build and Release
+
+# Menentukan kapan alur kerja ini akan dijalankan
+on:
+  # Dijalankan hanya saat ada tag baru yang didorong (pushed) yang cocok dengan pola v*.*.*
+  push:
+    tags:
+      - 'v*.*.*'
+
+# Mendefinisikan pekerjaan (jobs) yang akan dijalankan
+jobs:
+  release:
+    # Nama pekerjaan yang akan ditampilkan di UI GitHub
+    name: Build and Publish Release
+    # Menggunakan runner Linux terbaru karena Bun dapat melakukan kompilasi silang (cross-compile)
+    runs-on: ubuntu-latest
+
+    # Memberikan izin kepada pekerjaan untuk menulis ke rilis GitHub
+    permissions:
+      contents: write
+
+    steps:
+      # Langkah 1: Mengunduh kode sumber dari repositori pada tag yang spesifik
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Langkah 2: Menyiapkan lingkungan Bun
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "latest"
+
+      # Langkah 3: Menginstal dependensi proyek
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Langkah 4: Membangun semua biner menggunakan skrip 'bundle'
+      - name: Build all binaries
+        run: bun run bundle
+
+      # Langkah 5: Membuat Rilis GitHub dan mengunggah semua aset
+      # Menggunakan action 'softprops/action-gh-release' yang populer untuk menyederhanakan proses
+      - name: Create GitHub Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          # Menggunakan nama tag sebagai nama rilis dan tag
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          # Menghasilkan catatan rilis secara otomatis berdasarkan riwayat commit
+          generate_release_notes: true
+          # Mengunggah semua file yang cocok dengan pola dari direktori 'dist'
+          files: ./dist/html2pdf-*
