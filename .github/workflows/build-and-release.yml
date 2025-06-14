@@ -64,9 +64,9 @@ jobs:
           NEW_VERSION=$(npm version ${{ github.event.inputs.version_bump }} -m "chore(release): bump version to %s")
           echo "new_version_tag=${NEW_VERSION}" >> $GITHUB_OUTPUT
 
-      # Langkah 7: Mendorong perubahan (commit dan tag baru) ke branch 'main'
+      # Langkah 7: Mendorong perubahan (commit dan tag baru) ke branch 'master'
       - name: Push changes and tags
-        run: git push origin main --follow-tags
+        run: git push origin master --follow-tags
 
       # Langkah 8: Membangun semua biner menggunakan skrip 'bundle'
       - name: Build all binaries
