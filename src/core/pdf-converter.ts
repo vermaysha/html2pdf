@@ -1,9 +1,11 @@
-import puppeteer from 'puppeteer-core';
-import type { PDFOptions, PaperFormat } from 'puppeteer-core';
+import puppeteer, { executablePath } from 'puppeteer-core';
+import type { Browser, PDFOptions, PaperFormat } from 'puppeteer-core';
 import type { InputSource, OutputFile } from '../types';
 import { unlink } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { tmpdir } from 'node:os';
+import config from '../config';
+import { getExecutablePath } from './browser-finder';
 
 /**
  * @file src/core/pdf-converter.ts
@@ -11,12 +13,55 @@ import { tmpdir } from 'node:os';
  */
 
 interface ConversionOptions {
-  executablePath: string;
+  executablePath?: string;
   inputSource: InputSource;
   outputFile: OutputFile;
   timeout: number;
   pageFormat: PaperFormat;
   removeSource: boolean;
+}
+
+/**
+ * Gets a browser instance. It prioritizes connecting to a running server.
+ * If no server is found, it finds a local browser and launches a new temporary instance.
+ * @returns A tuple [browser, wasConnected]
+ */
+async function getBrowserInstance(customPath?: string): Promise<[Browser, boolean]> {
+  // Prioritas 1: Mencoba terhubung ke instance bersama.
+  try {
+    const endpoint = await Bun.file(config.endpointFilePath).text();
+    if (endpoint) {
+      console.log('Connecting to shared browser instance...');
+      const browser = await puppeteer.connect({ browserWSEndpoint: endpoint });
+      console.log('✅ Connected.');
+      return [browser, true]; // Kembalikan browser dan indikasikan itu adalah koneksi
+    }
+  } catch (e) {
+    // Tidak ada file endpoint atau koneksi gagal, lanjutkan ke fallback.
+  }
+
+  // Fallback: Menjalankan instance browser sementara yang baru.
+  console.log(
+    'No shared instance found. Searching for a browser to launch manually...'
+  );
+  const executablePath = await getExecutablePath(customPath);
+  if (!executablePath) {
+    throw new Error(
+      'Could not find a browser to launch. Please run "html2pdf browser install" or check your installation.'
+    );
+  }
+
+  console.log(`Launching a temporary browser from: ${executablePath}`);
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+    ],
+  });
+  return [browser, false]; // Kembalikan browser dan indikasikan itu adalah peluncuran baru
 }
 
 export async function convertToPdf(options: ConversionOptions): Promise<void> {
@@ -29,49 +74,13 @@ export async function convertToPdf(options: ConversionOptions): Promise<void> {
     removeSource,
   } = options;
 
-  console.log('Launching browser...');
-  const userDataDir = resolve(tmpdir(), `html2pdf-${Bun.randomUUIDv7()}`);
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      // Required for running as root in many environments.
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-
-      // Mitigates issues with shared memory in Docker.
-      '--disable-dev-shm-usage',
-
-      // Disables GPU hardware acceleration, which can cause issues in virtual environments.
-      '--disable-gpu',
-      '--disable-software-rasterizer',
-
-      // Specifies a writable directory for the user profile to prevent permission errors.
-      // This directly addresses 'cannot create directory /root' errors.
-      `--user-data-dir=${userDataDir}`,
-
-      // Prevents some hanging issues by running in a single process.
-      '--single-process',
-
-      // Disables the Zygote process, often needed with --no-sandbox on Linux.
-      '--no-zygote',
-
-      // Allows file access from files, useful for local HTML with local assets.
-      '--allow-file-access-from-files',
-      '--enable-local-file-accesses',
-
-      // Ignores certificate errors for HTTPS sites.
-      '--ignore-certificate-errors',
-    ],
-    userDataDir: userDataDir,
-    acceptInsecureCerts: true,
-    executablePath,
-  });
-
+  // getBrowserInstance sekarang menangani semuanya secara internal.
+  const [browser, wasConnected] = await getBrowserInstance(executablePath);
   const page = await browser.newPage();
-  console.log('Browser launched, new page created.');
+  console.log('New page created in browser.');
 
   try {
-    // Load content into the page
+    // Memuat konten ke dalam halaman
     if (inputSource.type === 'url') {
       console.log(`Navigating to URL: ${inputSource.path}`);
       await page.goto(inputSource.path, { waitUntil: 'networkidle0', timeout });
@@ -82,28 +91,27 @@ export async function convertToPdf(options: ConversionOptions): Promise<void> {
     }
     console.log('Content loaded successfully.');
 
-    // Generate PDF
+    // Menghasilkan PDF
     const pdfOptions: PDFOptions = {
       format: pageFormat,
       margin: { top: '0mm', bottom: '0mm', left: '0mm', right: '0mm' },
       timeout,
     };
-
     console.log('Generating PDF...');
     const buffer = await page.pdf(pdfOptions);
     console.log(
       `PDF generated with size: ${(buffer.length / 1024).toFixed(2)} KB`
     );
 
-    // Write PDF to output
+    // Menulis PDF ke output
     console.log(`Writing PDF to: ${outputFile.name || 'S3 path'}`);
     await outputFile.write(buffer);
     console.log('PDF written successfully.');
 
-    // Optionally remove source file
-    if (removeSource) {
+    // Secara opsional menghapus file sumber
+    if (removeSource && inputSource.type === 'file' && !inputSource.isUrl) {
       console.log(`Removing source file: ${inputSource.path}`);
-      await inputSource.cleanup();
+      await unlink(inputSource.path);
       console.log('Source file removed.');
     }
   } catch (error) {
@@ -111,12 +119,20 @@ export async function convertToPdf(options: ConversionOptions): Promise<void> {
       '❌ An error occurred during the PDF conversion process:',
       error
     );
+    // Jika kita meluncurkan browser sementara, pastikan browser ditutup saat terjadi error.
+    if (!wasConnected) await browser.close();
     process.exit(1);
   } finally {
-    // Ensure browser is closed
-    console.log('Closing browser...');
+    console.log('Closing page...');
     await page.close();
-    await browser.close();
-    console.log('Browser closed.');
+    // Hanya tutup browser jika kita meluncurkannya khusus untuk tugas ini.
+    // Jika kita terhubung ke instance bersama, biarkan tetap berjalan dengan hanya memutuskan koneksi.
+    if (!wasConnected) {
+      console.log('Closing temporary browser...');
+      await browser.close();
+    } else {
+      console.log('Disconnecting from shared browser instance.');
+      await browser.disconnect();
+    }
   }
 }
