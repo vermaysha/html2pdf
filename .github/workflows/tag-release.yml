@@ -57,6 +57,6 @@ jobs:
           # -m "..." adalah untuk format pesan commit, %s akan diganti dengan nomor versi
           npm version ${{ github.event.inputs.version }} -m "chore(release): bump version to %s"
 
-      # Langkah 7: Mendorong perubahan (commit dan tag baru) ke branch 'main'
+      # Langkah 7: Mendorong perubahan (commit dan tag baru) ke branch 'master'
       - name: Push changes and tags
-        run: git push origin main --follow-tags
+        run: git push origin master --follow-tags
