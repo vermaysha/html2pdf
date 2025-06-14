@@ -6,7 +6,7 @@ on:
   # Dijalankan hanya saat ada tag baru yang didorong (pushed) yang cocok dengan pola v*.*.*
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
 
 # Mendefinisikan pekerjaan (jobs) yang akan dijalankan
 jobs:
