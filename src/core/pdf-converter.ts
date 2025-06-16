@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import config from '../config';
 import { getExecutablePath } from './browser-finder';
+import { compressWithGs } from '../utils/compress';
 
 /**
  * @file src/core/pdf-converter.ts
@@ -19,6 +20,7 @@ interface ConversionOptions {
   timeout: number;
   pageFormat: PaperFormat;
   removeSource: boolean;
+  isCompressed: boolean;
 }
 
 /**
@@ -26,7 +28,9 @@ interface ConversionOptions {
  * If no server is found, it finds a local browser and launches a new temporary instance.
  * @returns A tuple [browser, wasConnected]
  */
-async function getBrowserInstance(customPath?: string): Promise<[Browser, boolean]> {
+async function getBrowserInstance(
+  customPath?: string
+): Promise<[Browser, boolean]> {
   // Prioritas 1: Mencoba terhubung ke instance bersama.
   try {
     const endpoint = await Bun.file(config.endpointFilePath).text();
@@ -103,9 +107,34 @@ export async function convertToPdf(options: ConversionOptions): Promise<void> {
       `PDF generated with size: ${(buffer.length / 1024).toFixed(2)} KB`
     );
 
+    let bufferedOutput = null;
+    if (options.isCompressed) {
+      try {
+        bufferedOutput = await compressWithGs(buffer);
+        console.log(
+          `Compressed PDF with size: ${(
+            bufferedOutput.byteLength / 1024
+          ).toFixed(2)} KB`
+        );
+        console.log(
+          `Compression ration : ${(
+            ((buffer.length - bufferedOutput.byteLength) / buffer.length) *
+            100
+          ).toFixed(2)}%`
+        );
+      } catch (error) {
+        console.error('Error compressing PDF:', error);
+        bufferedOutput = buffer;
+      }
+    }
+
+    if (!bufferedOutput) {
+      bufferedOutput = buffer;
+    }
+
     // Menulis PDF ke output
     console.log(`Writing PDF to: ${outputFile.name || 'S3 path'}`);
-    await outputFile.write(buffer);
+    await outputFile.write(bufferedOutput);
     console.log('PDF written successfully.');
 
     // Secara opsional menghapus file sumber

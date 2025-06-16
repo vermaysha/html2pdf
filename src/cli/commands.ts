@@ -64,6 +64,7 @@ export function configureCommands(program: Command) {
           timeout: options.timeout * 60 * 1000,
           pageFormat: options.pageFormat,
           removeSource: options.removeSource,
+          isCompressed: options.compress,
         });
 
         console.log('🎉 PDF conversion completed successfully!');

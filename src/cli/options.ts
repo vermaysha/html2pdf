@@ -31,6 +31,10 @@ export function defineOptions(program: Command) {
       new Option('-d, --remove-source', 'Remove the source file after successful conversion.')
         .default(false)
     )
+    .addOption(
+      new Option('--compress', 'Compress the generated PDF with Ghostscript.')
+        .default(true)
+    )
     .optionsGroup('S3 Options: ')
     .option('--s3-access-key-id <value>', 'AWS S3 access key ID. Overrides environment variable S3_ACCESS_KEY_ID.')
     .option('--s3-secret-access-key <value>', 'AWS S3 secret access key. Overrides environment variable S3_SECRET_ACCESS_KEY.')
