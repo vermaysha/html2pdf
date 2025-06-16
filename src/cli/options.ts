@@ -33,7 +33,7 @@ export function defineOptions(program: Command) {
     )
     .addOption(
       new Option('--compress', 'Compress the generated PDF with Ghostscript.')
-        .default(true)
+        .default(false)
     )
     .optionsGroup('S3 Options: ')
     .option('--s3-access-key-id <value>', 'AWS S3 access key ID. Overrides environment variable S3_ACCESS_KEY_ID.')
