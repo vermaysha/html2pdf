@@ -19,6 +19,7 @@ interface ConversionOptions {
   outputFile: OutputFile;
   timeout: number;
   pageFormat: PaperFormat;
+  pageLayout: 'Landscape' | 'Portrait';
   removeSource: boolean;
   isCompressed: boolean;
 }
@@ -98,6 +99,7 @@ export async function convertToPdf(options: ConversionOptions): Promise<void> {
     // Menghasilkan PDF
     const pdfOptions: PDFOptions = {
       format: pageFormat,
+      landscape: options.pageLayout === 'Landscape',
       margin: { top: '0mm', bottom: '0mm', left: '0mm', right: '0mm' },
       timeout,
     };

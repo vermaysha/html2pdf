@@ -19,8 +19,13 @@ export function defineOptions(program: Command) {
     )
     .addOption(
       new Option('-p, --page-format <format>', 'PDF page format.')
-        .choices(['A4', 'A3', 'A2', 'Letter', 'Legal'])
+        .choices(['Letter', 'Legal', 'Tabloid', 'Ledger', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6'])
         .default('Legal')
+    )
+    .addOption(
+      new Option('-l, --page-layout <layout>', 'PDF page layout.')
+        .choices(['Portrait', 'Landscape'])
+        .default('Portrait')
     )
     .addOption(
       new Option('-t, --timeout <number>', 'Timeout in minutes for page loading and PDF generation.')

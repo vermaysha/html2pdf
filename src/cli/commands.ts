@@ -63,6 +63,7 @@ export function configureCommands(program: Command) {
           outputFile,
           timeout: options.timeout * 60 * 1000,
           pageFormat: options.pageFormat,
+          pageLayout: options.pageLayout,
           removeSource: options.removeSource,
           isCompressed: options.compress,
         });
