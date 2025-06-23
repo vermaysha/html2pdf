@@ -60,11 +60,9 @@ async function getBrowserInstance(
   const browser = await puppeteer.launch({
     headless: true,
     executablePath,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-    ],
+    protocolTimeout: 90_0000, // 15 menit
+    args: config.browserArgs,
+    userDataDir: config.userDataDir,
   });
   return [browser, false]; // Kembalikan browser dan indikasikan itu adalah peluncuran baru
 }
