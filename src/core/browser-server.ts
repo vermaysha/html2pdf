@@ -37,7 +37,7 @@ export async function startBrowserServer(): Promise<void> {
     executablePath,
     protocolTimeout: 90_0000, // 15 menit
     args: config.browserArgs,
-    userDataDir: config.userDataDir,
+    // userDataDir: config.userDataDir,
   });
 
   const endpoint = browser.wsEndpoint();

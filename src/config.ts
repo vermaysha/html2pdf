@@ -25,7 +25,7 @@ const browserArgs = [
 
   // Specifies a writable directory for the user profile to prevent permission errors.
   // This directly addresses 'cannot create directory /root' errors.
-  `--user-data-dir=${userDataDir}`,
+  // `--user-data-dir=${userDataDir}`,
 
   // Prevents some hanging issues by running in a single process.
   '--single-process',
