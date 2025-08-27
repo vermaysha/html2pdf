@@ -14,16 +14,16 @@
   },
   "private": true,
   "devDependencies": {
-    "@types/bun": "^1.2.16",
-    "@types/node": "^24.0.1"
+    "@types/bun": "^1.2.21",
+    "@types/node": "^24.3.0"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "@commander-js/extra-typings": "^14.0.0",
-    "@puppeteer/browsers": "^2.10.5",
-    "puppeteer-core": "^24.10.1"
+    "@puppeteer/browsers": "^2.10.7",
+    "puppeteer-core": "^24.17.0"
   },
   "author": {
     "name": "Ashary Vermaysha",
