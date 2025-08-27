@@ -62,7 +62,7 @@ async function getBrowserInstance(
     executablePath,
     protocolTimeout: 90_0000, // 15 menit
     args: config.browserArgs,
-    userDataDir: config.userDataDir,
+    // userDataDir: config.userDataDir,
   });
   return [browser, false]; // Kembalikan browser dan indikasikan itu adalah peluncuran baru
 }
