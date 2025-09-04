@@ -40,7 +40,7 @@ jobs:
 
       # Langkah 3: Menyiapkan lingkungan Node.js (untuk menggunakan npm)
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20' # Menggunakan versi LTS Node.js
 
