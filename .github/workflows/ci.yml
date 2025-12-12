@@ -65,7 +65,7 @@ jobs:
 
       # Langkah 3: Cache untuk dependensi Bun
       - name: Cache Bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
@@ -74,7 +74,7 @@ jobs:
 
       # Langkah 4: Cache untuk browser Puppeteer
       - name: Cache Puppeteer browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/puppeteer
           key: ${{ runner.os }}-puppeteer-${{ hashFiles('src/core/browser-manager.ts') }}
